@@ -2,6 +2,9 @@ import { CUSTOM_ELEMENTS_SCHEMA, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { provideVSCodeDesignSystem, vsCodeBadge, vsCodeButton, vsCodeCheckbox, vsCodePanelTab, vsCodePanelView, vsCodePanels, vsCodeTextArea } from "@vscode/webview-ui-toolkit";
 import { vscode } from "./utilities/vscode";
+import { HttpClientModule } from '@angular/common/http';
+
+import { AskService } from './services/ask.service';
 
 provideVSCodeDesignSystem().register(vsCodeButton());
 provideVSCodeDesignSystem().register(vsCodePanels());
@@ -15,12 +18,16 @@ provideVSCodeDesignSystem().register(vsCodeTextArea());
   standalone: true,
   imports: [
     CommonModule,
+    HttpClientModule
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class AppComponent implements OnInit {
+
+  constructor(private askService: AskService){ }
+
   ngOnInit(): void {
     // Subscribe to messages from the extension
     window.addEventListener('message', (event) => {
@@ -49,10 +56,16 @@ export class AppComponent implements OnInit {
 
   handleExplainerClick() {
     this.explainOutput = "Explained"
-    vscode.postMessage({
-      command: "explain",
-      text: "Explaining! 🤠",
-    });
+    this.askService.explain(
+      {"message":this.explainSelection}
+    ).subscribe(response=>{
+      this.explainOutput = response
+    },error=>{
+      vscode.postMessage({
+        command: "explain",
+        text: "There was an error! 🤠",
+      });
+    })
   }
 
   handleGenerateTestsClick() {
