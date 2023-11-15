@@ -1,3 +1,8 @@
-.prompt-background>textarea#control{
+:host ::ng-deep vscode-text-area.prompt-background textarea{
+    height: 25%;
     background-color: transparent !important;
+}
+
+.prompt-output{
+    height: 75%;
 }
