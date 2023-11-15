@@ -1,65 +1,32 @@
-import * as vscode from 'vscode';
-import * as path from 'path';
-import { error } from 'console';
+import { commands, ExtensionContext, window } from "vscode";
+import { LivelyPanel } from "./panels/LivelyPanel";
 
-export function activate(context: vscode.ExtensionContext) {
-    // Command to open the webview
-    const disposable = vscode.commands.registerCommand('livelygpt.launch', async () => {
-        // Create and show a new webview
-        const panel = vscode.window.createWebviewPanel(
-            'livelyView', // Identifies the type of the webview. Used internally
-            'LivelyGPT', // Title of the panel displayed to the user`
-            vscode.ViewColumn.One, // Editor column to show the new webview panel in
-            {
-                enableScripts: true, // Enable scripts in the webview
-            }
-        );
+export function activate(context: ExtensionContext) {
+  // Create the show hello world command
+  const launchCommand = commands.registerCommand("livelygpt.launch", () => {
+    LivelyPanel.render(context.extensionUri);
+  });
 
-        // Get path to index.html relative to the extension path
-        const indexPath = vscode.Uri.file(context.asAbsolutePath(path.join('dist','browser', 'index.html')));
+  const selectTextCommand = commands.registerCommand('livelygpt.getSelectedText', () => {
+    // Get the active text editor
+    const editor = window.activeTextEditor;
 
-        // Set initial content
-        panel.webview.html = await getWebviewContent(indexPath);
+    if (editor) {
+        // Get the selected text
+        const selectedText = editor.document.getText(editor.selection);
 
-        // Handle messages from the webview
-        panel.webview.onDidReceiveMessage(
-            (message) => {
-                switch (message.command) {
-                    case 'generateCode':
-                        // Handle generating code
-                        break;
-                    case 'displayCodeInfo':
-                        // Handle displaying selected code info
-                        break;
-                    case 'generateTests':
-                        // Handle generating tests for selected code
-                        break;
-                    case 'displayProblems':
-                        // Handle displaying potential problems and vulnerabilities
-                        break;
-                    case 'suggestImprovements':
-                        // Handle suggesting improvements to the code
-                        break;
-                }
-            },
-            undefined,
-            context.subscriptions
-        );
+        // Pass the selected text to your extension logic (replace this with your actual logic)
+        sendSelectedText(selectedText);
+    } else {
+        window.showInformationMessage('No text selected. Please select some text in the editor.');
+    }
     });
 
-    context.subscriptions.push(disposable);
+  // Add command to the extension context
+  context.subscriptions.push(launchCommand);
 }
 
-function getWebviewContent(indexPath: vscode.Uri): Promise<string> {
-    // Read the HTML file from disk
-    return new Promise((resolve, reject) => {
-        vscode.workspace.fs.readFile(indexPath).then(
-            (content: Uint8Array) => {
-                resolve(Buffer.from(content).toString('utf-8'));
-            },
-            (error) => {
-                reject(error);
-            }
-        );
-    });
+function sendSelectedText(selectedText: string) {
+    console.log('Selected Text:', selectedText);
+    LivelyPanel.pushMessage('explain', selectedText);
 }

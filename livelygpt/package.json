@@ -16,6 +16,10 @@
       {
         "command": "livelygpt.launch",
         "title": "LivelyGPT"
+      },
+      {
+        "command": "livelygpt.getSelectedText",
+        "title": "ExplainCode"
       }
     ]
   },
